@@ -1,4 +1,0 @@
-PySide6>=6.8,<7
-pypdf>=5.0,<7
-pypdfium2>=4.30,<5
-pytest>=8,<9
