@@ -1,0 +1,9 @@
+Third-party libraries (downloaded separately by download-libraries.bat):
+
+1. PDF.js 3.11.174 — Apache License 2.0
+   https://github.com/mozilla/pdf.js
+2. pdf-lib 1.17.1 — MIT License
+   https://github.com/Hopding/pdf-lib
+
+The downloader retrieves the official distribution files from cdnjs and jsDelivr.
+Review the respective upstream license files for full license terms.
