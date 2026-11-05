@@ -6,9 +6,9 @@ from PySide6.QtGui import QAction, QPixmap
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QLabel, QPushButton, QFileDialog, QMessageBox,
     QVBoxLayout, QHBoxLayout, QFormLayout, QGroupBox, QComboBox,
-    QDoubleSpinBox, QSpinBox, QScrollArea, QSplitter, QFrame
+    QDoubleSpinBox, QSpinBox, QScrollArea, QSplitter, QFrame, QInputDialog
 )
-from PySide6.QtPrintSupport import QPrinter, QPrintDialog
+from PySide6.QtPrintSupport import QPrinter, QPrintPreviewDialog
 from .config import LayoutSettings
 from .pdf_service import compose_pdf, compose_page
 from .render_service import render_pdf_page
@@ -444,20 +444,91 @@ class MainWindow(QMainWindow):
         if not self.source_path:
             QMessageBox.information(self, "Print", "Open a PDF first.")
             return
+
+        # Ask for the print scope before opening the preview.
+        choices = ["Current page", "All pages", "Page range"]
+        choice, accepted = QInputDialog.getItem(
+            self, "Print pages", "Choose which pages to print:",
+            choices, 0, False
+        )
+        if not accepted:
+            return
+
+        if choice == "Current page":
+            page_indices = [self.page_index]
+        elif choice == "All pages":
+            page_indices = list(range(self.page_count))
+        else:
+            text, accepted = QInputDialog.getText(
+                self, "Print page range", "Enter pages (e.g. 1-3, 5, 8-10):"
+            )
+            if not accepted:
+                return
+            try:
+                page_indices = self._parse_page_ranges(text, self.page_count)
+            except ValueError as exc:
+                QMessageBox.warning(self, "Invalid page range", str(exc))
+                return
+
         try:
-            output = self._build_output()
+            # Compose only the pages requested. The preview and final print
+            # therefore contain exactly the same page selection.
+            output = compose_pdf(
+                self.source_path, self._layout_settings(), page_indices
+            )
             printer = QPrinter(QPrinter.PrinterMode.HighResolution)
             configure_printer(printer, self._layout_settings())
             if not printer.isValid():
                 raise RuntimeError("No valid printer is available.")
-            dialog = QPrintDialog(printer, self)
-            if dialog.exec() != QPrintDialog.DialogCode.Accepted:
-                return
-            print_pdf_bytes(output, printer)
-            QMessageBox.information(self, "Print", "Print job submitted to Windows.")
+
+            preview = QPrintPreviewDialog(printer, self)
+            preview.setWindowTitle("Print Preview — PDF Scale & Print")
+
+            def paint_preview(target_printer):
+                # QPrintPreviewDialog asks us to paint the composed document.
+                # It will refresh this view when page setup or printer options
+                # change inside the preview window.
+                print_pdf_bytes(output, target_printer)
+
+            preview.paintRequested.connect(paint_preview)
+            preview.exec()
         except Exception as exc:
-            log.exception("Print failed")
+            log.exception("Print/preview failed")
             QMessageBox.critical(self, "Print failed", str(exc))
+
+    @staticmethod
+    def _parse_page_ranges(value: str, page_count: int) -> list[int]:
+        """Parse 1-based page expressions such as '1-3,5,8-10'."""
+        value = value.strip()
+        if not value:
+            raise ValueError("Enter at least one page number or range.")
+        selected = []
+        try:
+            for part in value.split(","):
+                part = part.strip()
+                if not part:
+                    raise ValueError
+                if "-" in part:
+                    pieces = part.split("-")
+                    if len(pieces) != 2:
+                        raise ValueError
+                    first, last = (int(piece.strip()) for piece in pieces)
+                    if first > last:
+                        raise ValueError
+                    numbers = range(first, last + 1)
+                else:
+                    numbers = [int(part)]
+                for number in numbers:
+                    if number < 1 or number > page_count:
+                        raise ValueError
+                    if number - 1 not in selected:
+                        selected.append(number - 1)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"Invalid range. Use page numbers from 1 to {page_count}, "
+                "for example: 1-3, 5, 8-10."
+            )
+        return selected
 
     def _restore_settings(self):
         defaults = {

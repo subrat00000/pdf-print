@@ -67,13 +67,19 @@ def calculate_page_layout(
         target_w, target_h, overflow
     )
 
-def compose_pdf(source_path: str, settings: LayoutSettings) -> bytes:
+def compose_pdf(source_path: str, settings: LayoutSettings, page_indices=None) -> bytes:
     reader = PdfReader(source_path, strict=False)
     if reader.is_encrypted:
         raise ValueError("This PDF is password-protected. Unlock it before processing.")
 
     writer = PdfWriter()
-    for page_number, original in enumerate(reader.pages, start=1):
+    indices = list(range(len(reader.pages))) if page_indices is None else list(page_indices)
+    if not indices:
+        raise ValueError("Select at least one page to print or save.")
+    if any(i < 0 or i >= len(reader.pages) for i in indices):
+        raise IndexError("A selected page is outside the document.")
+    for page_index in indices:
+        original = reader.pages[page_index]
         page = original
         # pypdf normalizes /Rotate into the page content and dimensions.
         if int(page.get("/Rotate", 0)) % 360:

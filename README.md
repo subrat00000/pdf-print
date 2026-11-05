@@ -107,3 +107,17 @@ Performance note: lazy rendering reduces initial work for long PDFs, but page
 composition and rendering are still performed on the GUI thread in this
 iteration. Extremely large or complex PDFs can briefly pause while a newly
 visible page is rendered. A worker-thread renderer is the next performance step.
+
+
+## Print preview and page selection
+
+The Print command now opens an in-app print preview before printing. Before
+previewing, choose one of:
+
+- **Current page** — prints only the page currently active in the scrolling view.
+- **All pages** — prints the complete PDF.
+- **Page range** — enter a range such as `1-3, 5, 8-10`.
+
+The selected pages are composed into a temporary PDF first. The preview and
+the print job use that same selected-page document, preventing the previous
+behavior where selecting one page still sent the entire source PDF.
