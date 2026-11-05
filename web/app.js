@@ -1,111 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PDF Scale &amp; Print | Developed by Subrat Meher</title>
-<style>
-:root{font-family:Inter,Segoe UI,Arial,sans-serif;color:#202632;background:#f3f5f8;font-synthesis:none}
-*{box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden}body{margin:0;min-height:100vh}
-header{height:58px;background:#172235;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px}
-.brand{font-weight:700;letter-spacing:.2px}.brand span{color:#9fc5ff}
-header .sub{font-size:12px;color:#c2ccda}
-main{display:grid;grid-template-columns:300px minmax(0,1fr);height:calc(100vh - 58px);min-height:0;overflow:hidden}
-aside{background:#fff;border-right:1px solid #dce1e8;padding:16px;overflow:auto}
-.viewer{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
-.toolbar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-bottom:1px solid #dce1e8;flex-wrap:wrap}
-.toolbar .spacer{flex:1}
-button,.button{border:1px solid #cbd3df;background:#fff;color:#263348;border-radius:7px;padding:8px 11px;font-weight:600;cursor:pointer;font-size:13px}
-button.primary{background:#2463d3;border-color:#2463d3;color:#fff}
-button:disabled{opacity:.45;cursor:not-allowed}
-button:hover:not(:disabled){filter:brightness(.97)}
-#pageJump{width:64px;padding:7px;border:1px solid #cbd3df;border-radius:6px}
-.group{padding:0 0 15px;margin:0 0 14px;border-bottom:1px solid #e7ebf0}
-.group h3{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:#687487;margin:0 0 11px}
-.field{display:grid;grid-template-columns:1fr 100px;align-items:center;gap:8px;margin:9px 0;font-size:13px}
-.field input,.field select{width:100%;min-width:0;border:1px solid #cbd3df;border-radius:6px;padding:7px;background:#fff;color:#202632}
-.field input[type=range]{padding:0;accent-color:#2463d3}
-.field small{color:#738094}
-.inline{display:flex;gap:8px;align-items:center}
-.inline>*{flex:1;min-width:0}
-.hint{font-size:11px;color:#758196;line-height:1.45}
-.dropzone{border:1.5px dashed #9aa9bd;border-radius:9px;padding:16px 10px;text-align:center;background:#f8faff;cursor:pointer;margin-bottom:14px}
-.dropzone.drag{border-color:#2463d3;background:#edf4ff}
-.dropzone strong{display:block;font-size:13px;margin-bottom:4px}
-.dropzone small{font-size:11px;color:#718096}
-#fileInput{display:none}
-.status{font-size:12px;color:#667286;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
-#pages{overflow:auto;min-height:0;flex:1;padding:22px 12px 40px;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:center;gap:22px;background:#e8ebf0}
-.page-wrap{position:relative;width:min(850px,calc(100% - 20px));aspect-ratio:595.276/841.89;background:#fff;box-shadow:0 2px 10px #15223824;border:1px solid #d1d7e0;max-width:100%;flex:none}
-.page-wrap canvas{display:block;max-width:100%;height:auto}
-.page-label{position:absolute;top:7px;left:8px;font-size:10px;color:#778397;background:#ffffffd9;padding:3px 6px;border-radius:4px}
-.empty{margin:auto;text-align:center;color:#788498;max-width:380px;padding:30px}
-.empty .symbol{font-size:44px;margin-bottom:10px}
-#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#172235;color:#fff;padding:10px 15px;border-radius:8px;font-size:13px;display:none;z-index:10;box-shadow:0 4px 18px #0002}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.actions button{width:100%}
-@media(max-width:850px){main{grid-template-columns:260px minmax(0,1fr)}aside{padding:12px}}
-@media(max-width:650px){header{height:52px;padding:0 12px}header .sub{display:none}main{height:calc(100vh - 52px);min-height:0;display:flex;flex-direction:column;overflow:hidden}aside{order:2;border-right:0;border-top:1px solid #dce1e8;max-height:42vh} .viewer{order:1;flex:1;min-height:0;overflow:hidden}.toolbar{padding:8px}.status{max-width:100%}#pages{padding:12px 5px;min-height:0}}
-</style>
-</head>
-<body>
-<header><div class="brand">PDF <span>Scale &amp; Print</span> | Developed by Subrat Meher</div><div class="sub">Local browser application · Your PDF stays on this device</div></header>
-<main>
-<aside>
-  <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Open or drop a PDF">
-    <strong>Drop a PDF here</strong><small>or click to browse · PDF files only</small>
-  </div>
-  <input id="fileInput" type="file" accept="application/pdf,.pdf">
-  <section class="group">
-    <h3>Page layout</h3>
-    <label class="field"><span>Paper size</span><select id="paper"><option value="A4">A4</option><option value="A3">A3</option><option value="Letter">Letter</option><option value="Legal">Legal</option></select></label>
-    <label class="field"><span>Orientation</span><select id="orientation"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></label>
-    <label class="field"><span>Scale (%)</span><input id="scale" type="number" min="1" max="500" step="1" value="85"></label>
-    <div class="field"><span>Scale mode</span><select id="scaleMode"><option value="manual">Manual</option><option value="fit">Fit to printable area</option><option value="actual">Actual size (100%)</option></select></div>
-    <label class="field"><span>Horizontal</span><select id="hAlign"><option value="center">Center</option><option value="left">Left</option><option value="right">Right</option></select></label>
-    <label class="field"><span>Vertical</span><select id="vAlign"><option value="top">Top</option><option value="center">Center</option><option value="bottom">Bottom</option></select></label>
-  </section>
-  <section class="group">
-    <h3>Margins (mm)</h3>
-    <label class="field"><span>Top</span><input id="mTop" type="number" min="0" max="100" step="1" value="0"></label>
-    <label class="field"><span>Bottom</span><input id="mBottom" type="number" min="0" max="100" step="1" value="0"></label>
-    <label class="field"><span>Left</span><input id="mLeft" type="number" min="0" max="100" step="1" value="0"></label>
-    <label class="field"><span>Right</span><input id="mRight" type="number" min="0" max="100" step="1" value="0"></label>
-    <p class="hint">Margins define the printable area. Content is positioned inside that area.</p>
-  </section>
-  <section class="group">
-    <h3>Output</h3>
-    <label class="field"><span>Print selection</span><select id="printScope"><option value="current">Current page</option><option value="all">All pages</option><option value="range">Page range</option></select></label>
-    <label class="field"><span>Page range</span><input id="pageRange" type="text" placeholder="1-3, 5" disabled></label>
-    <div class="actions">
-      <button id="printBtn" class="primary" disabled>Print preview</button>
-      <button id="downloadBtn" disabled>Download PDF</button>
-    </div>
-    <p class="hint">Print opens your browser's native print preview. Printer settings and preview appearance are controlled by the browser and operating system.</p>
-  </section>
-</aside>
-<section class="viewer">
-  <div class="toolbar">
-    <button id="openBtn">Open PDF</button>
-    <button id="zoomOut" disabled>−</button><span id="zoomText" class="hint">100%</span><button id="zoomIn" disabled>+</button>
-    <span class="spacer"></span>
-    <span class="hint">Active page</span><input id="pageJump" type="number" min="1" value="1" disabled>
-    <strong id="pageCount">/ 0</strong>
-    <span id="status" class="status">No PDF loaded</span>
-  </div>
-  <div id="pages">
-    <div class="empty" id="empty"><div class="symbol">▤</div><strong>Open a PDF to get started</strong><p>Scroll through pages, adjust scale and margins, then preview printing or download the adjusted PDF.</p></div>
-  </div>
-</section>
-</main>
-<div id="toast"></div>
-<script src="vendor/pdf.min.js"></script>
-<script>pdfjsLib.GlobalWorkerOptions.workerSrc = "./vendor/pdf.worker.min.js";</script>
-<script src="vendor/pdf-lib.min.js"></script>
-<script>
 (() => {
 "use strict";
+pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL("vendor/pdf.worker.min.js");
 const $ = id => document.getElementById(id);
 const state = {pdf:null,bytes:null,name:"document.pdf",pageCount:0,activePage:1,zoom:1,observer:null,rendered:new Set(),rendering:new Set(),pageSizes:[]};
 const PAPER = {A4:[595.276,841.89],A3:[841.89,1190.55],Letter:[612,792],Legal:[612,1008]};
@@ -115,6 +10,38 @@ const num = id => Math.max(0,Number($(id).value)||0);
 const getPaper = () => {let [w,h]=PAPER[$("paper").value];if($("orientation").value==="landscape")[w,h]=[h,w];return [w,h]};
 const mmToPt = mm => mm*72/25.4;
 const getLayout = () => ({paper:getPaper(),margins:{top:mmToPt(num("mTop")),bottom:mmToPt(num("mBottom")),left:mmToPt(num("mLeft")),right:mmToPt(num("mRight"))},h:$("hAlign").value,v:$("vAlign").value,mode:$("scaleMode").value,scale:Math.min(5,Math.max(.01,(Number($("scale").value)||85)/100))});
+const SETTINGS_KEY = "pdfScalePrintLastLayout";
+const SETTINGS_FIELDS = ["paper","orientation","scale","scaleMode","hAlign","vAlign","mTop","mBottom","mLeft","mRight","printScope","pageRange"];
+let settingsReady = false;
+let settingsTimer = null;
+function collectSettings(){
+ const data={};
+ for(const id of SETTINGS_FIELDS)data[id]=$(id).value;
+ return data;
+}
+async function saveSettings(){
+ if(!settingsReady || !chrome.storage?.local)return;
+ clearTimeout(settingsTimer);
+ settingsTimer=setTimeout(()=>{
+  chrome.storage.local.set({[SETTINGS_KEY]:collectSettings()},()=>{
+   if(chrome.runtime.lastError)console.warn("Could not save PDF layout settings:",chrome.runtime.lastError.message);
+  });
+ },250);
+}
+async function restoreSettings(){
+ if(!chrome.storage?.local){settingsReady=true;return;}
+ try{
+  const result=await chrome.storage.local.get(SETTINGS_KEY);
+  const saved=result[SETTINGS_KEY]||{};
+  for(const id of SETTINGS_FIELDS){
+   if(saved[id]!==undefined && $(id))$(id).value=String(saved[id]);
+  }
+  $("scale").disabled=$("scaleMode").value!=="manual";
+  $("pageRange").disabled=$("printScope").value!=="range";
+ }catch(err){console.warn("Could not restore saved PDF layout:",err);}
+ settingsReady=true;
+}
+
 function setEnabled(on){["pageJump","zoomIn","zoomOut","printBtn","downloadBtn"].forEach(id=>$(id).disabled=!on);$("pageJump").max=state.pageCount||1}
 function validPdf(file){return !!file && (file.type==="application/pdf" || file.name.toLowerCase().endsWith(".pdf"))}
 async function openFile(file){
@@ -184,7 +111,7 @@ async function refreshPreviews(){
 }
 let refreshTimer;
 ["paper","orientation","scale","scaleMode","hAlign","vAlign","mTop","mBottom","mLeft","mRight"].forEach(id=>{
- $(id).addEventListener("change",()=>{if(id==="scaleMode")$("scale").disabled=$("scaleMode").value!=="manual";clearTimeout(refreshTimer);refreshTimer=setTimeout(refreshPreviews,160)});
+ $(id).addEventListener("change",()=>{if(id==="scaleMode")$("scale").disabled=$("scaleMode").value!=="manual";saveSettings();clearTimeout(refreshTimer);refreshTimer=setTimeout(refreshPreviews,160)});
 });
 $("scaleMode").addEventListener("change",()=>{$("scale").disabled=$("scaleMode").value!=="manual"});
 $("dropzone").addEventListener("click",()=>$("fileInput").click());
@@ -200,7 +127,8 @@ $("pages").addEventListener("scroll",()=>{const mid=$("pages").getBoundingClient
 $("pageJump").addEventListener("change",()=>{const n=Math.min(state.pageCount,Math.max(1,Number($("pageJump").value)||1));$("pages").querySelector(`.page-wrap[data-page="${n}"]`)?.scrollIntoView({behavior:"smooth",block:"start"});state.activePage=n});
 $("zoomIn").addEventListener("click",()=>{state.zoom=Math.min(2,state.zoom+.1);$("zoomText").textContent=Math.round(state.zoom*100)+"%";$("pages").style.zoom=state.zoom});
 $("zoomOut").addEventListener("click",()=>{state.zoom=Math.max(.5,state.zoom-.1);$("zoomText").textContent=Math.round(state.zoom*100)+"%";$("pages").style.zoom=state.zoom});
-$("printScope").addEventListener("change",()=>{$("pageRange").disabled=$("printScope").value!=="range"});
+$("printScope").addEventListener("change",()=>{$("pageRange").disabled=$("printScope").value!=="range";saveSettings()});
+$("pageRange").addEventListener("change",saveSettings);
 function parseRange(value,max){
  const out=[],seen=new Set();if(!value.trim())throw Error("Enter page numbers, for example 1-3, 5.");
  for(const p of value.split(",")){const s=p.trim();if(!s)throw Error("Invalid page range.");let a,b;if(s.includes("-")){const bits=s.split("-");if(bits.length!==2)throw Error("Invalid range.");a=Number(bits[0]);b=Number(bits[1])}else a=b=Number(s);if(!Number.isInteger(a)||!Number.isInteger(b)||a<1||b<a||b>max)throw Error(`Use page numbers from 1 to ${max}.`);for(let i=a;i<=b;i++)if(!seen.has(i)){seen.add(i);out.push(i-1)}}
@@ -250,7 +178,43 @@ $("printBtn").addEventListener("click",async()=>{
   setTimeout(()=>URL.revokeObjectURL(url),120000);
  }catch(e){console.error(e);if(win)win.close();showToast(e.message||"Could not prepare print preview.");status("Print preview failed")}
 });
+
+async function openRemotePdf(url){
+ try{
+  const parsed=new URL(url);
+  const isLocal=parsed.protocol==="file:";
+  status(isLocal?"Loading local PDF…":"Fetching PDF from browser tab…");
+  // file:// access is available only when the user enables the extension's
+  // "Allow access to file URLs" permission in the browser's extension details.
+  const response=await fetch(url,{credentials:isLocal?"omit":"include",redirect:"follow"});
+  // file:// fetch responses may use status 0, so only enforce HTTP status checks.
+  if(!isLocal&&!response.ok)throw Error(`Could not fetch PDF (${response.status}).`);
+  const type=(response.headers.get("content-type")||"").toLowerCase();
+  if(type&&!type.includes("application/pdf")&&!decodeURIComponent(parsed.pathname).toLowerCase().endsWith(".pdf"))
+    throw Error("The selected file or page did not return a PDF file.");
+  const blob=await response.blob();
+  if(!blob.size)throw Error("The PDF file is empty or the browser did not grant access to it.");
+  const rawName=decodeURIComponent(parsed.pathname.split("/").pop()||"document.pdf");
+  const safeName=rawName.toLowerCase().endsWith(".pdf")?rawName:"document.pdf";
+  const file=new File([blob],safeName,{type:"application/pdf"});
+  await openFile(file);
+ }catch(err){
+  console.error(err);
+  if(url.startsWith("file:")){
+   status("Local PDF access was blocked");
+   showToast("The browser blocked local-file access. Enable Allow access to file URLs, reload the extension, then reopen the PDF. You can also click Open PDF and select it manually.");
+  }else{
+   status("Could not load the browser PDF");
+   showToast(err.message || "Unable to load this PDF. Try downloading it and opening it here.");
+  }
+ }
+}
+
+// Restore the previous paper, scale, alignment and four margins before loading
+// the incoming PDF, so the first preview uses the last-used print layout.
+(async()=>{
+ await restoreSettings();
+ const sourceUrl=new URLSearchParams(location.search).get("url");
+ if(sourceUrl)openRemotePdf(sourceUrl);
+})(); 
 })();
-</script>
-</body>
-</html>

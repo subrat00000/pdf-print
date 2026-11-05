@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "PDF Scale & Print",
+  "version": "1.2.0",
+  "description": "Automatically opens PDF Scale & Print for online and local PDF files, and remembers your last layout settings.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "webNavigation",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*",
+    "file:///*"
+  ],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "action": {
+    "default_title": "Open PDF Scale & Print"
+  }
+}
