@@ -12,7 +12,7 @@ pyinstaller ^
     --noconfirm ^
     --clean ^
     --windowed ^
-    --onedir ^
+    --onefile ^
     --name PDFScalePrint ^
     --collect-all pypdfium2 ^
     --collect-all PySide6 ^
